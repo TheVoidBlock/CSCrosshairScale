@@ -9,8 +9,8 @@ A Minecraft mod (Fabric) that allows you to change the size of the vanilla cross
 - Keybindings to open settings and adjust scale on the fly
 
 ## Requirements
-- Minecraft 1.21.11
-- Fabric Loader (>=0.19.5)
+- Minecraft 26.3
+- Fabric Loader (>=0.20.1)
 - Fabric API
 
 ## Build
