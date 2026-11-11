@@ -1,23 +1,24 @@
 package fun.crashstudio.cscrosshairscale.client.gui;
 
 import fun.crashstudio.cscrosshairscale.config.ModConfig;
-import net.minecraft.client.gl.RenderPipelines;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.screen.ScreenTexts;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import org.joml.Matrix3x2fStack;
+import org.jspecify.annotations.NonNull;
 
 public class CrosshairScaleConfigScreen extends Screen {
-    private static final Identifier CROSSHAIR_TEXTURE = Identifier.ofVanilla("hud/crosshair");
+    private static final Identifier CROSSHAIR_TEXTURE = Identifier.withDefaultNamespace("hud/crosshair");
 
     private final Screen parent;
     private CrosshairScaleSliderWidget slider;
 
     public CrosshairScaleConfigScreen(Screen parent) {
-        super(Text.translatable("cscrosshairscale.screen.title"));
+        super(Component.translatable("cscrosshairscale.screen.title"));
         this.parent = parent;
     }
 
@@ -31,63 +32,61 @@ public class CrosshairScaleConfigScreen extends Screen {
         int buttonX = this.width / 2 - buttonWidth / 2;
 
         this.slider = new CrosshairScaleSliderWidget(buttonX, startY, buttonWidth, buttonHeight);
-        this.addDrawableChild(this.slider);
+        this.addRenderableWidget(this.slider);
 
-        ButtonWidget resetButton = ButtonWidget.builder(
-                Text.translatable("cscrosshairscale.config.reset"),
-                button -> {
+        Button resetButton = Button.builder(
+                Component.translatable("cscrosshairscale.config.reset"),
+                _ -> {
                     ModConfig.get().reset();
                     this.slider.syncFromConfig();
                 }
-        ).dimensions(buttonX, startY + 24, buttonWidth, buttonHeight).build();
-        this.addDrawableChild(resetButton);
+        ).bounds(buttonX, startY + 24, buttonWidth, buttonHeight).build();
+        this.addRenderableWidget(resetButton);
 
         int doneY = Math.max(startY + 50, this.height - 28);
-        ButtonWidget doneButton = ButtonWidget.builder(
-                ScreenTexts.DONE,
-                button -> this.close()
-        ).dimensions(buttonX, doneY, buttonWidth, buttonHeight).build();
-        this.addDrawableChild(doneButton);
+        Button doneButton = Button.builder(
+                CommonComponents.GUI_DONE,
+                _ -> this.onClose()
+        ).bounds(buttonX, doneY, buttonWidth, buttonHeight).build();
+        this.addRenderableWidget(doneButton);
     }
 
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        super.render(context, mouseX, mouseY, delta);
+    public void extractRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+        super.extractRenderState(graphics, mouseX, mouseY, delta);
 
-        context.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 14, 0xFFFFFF);
+        graphics.centeredText(this.font, this.title, this.width / 2, 14, 0xFFFFFF);
 
         int previewBoxWidth = 90;
         int previewBoxHeight = 76;
         int previewBoxX = this.width / 2 - previewBoxWidth / 2;
         int previewBoxY = 32;
 
-        context.fill(previewBoxX, previewBoxY, previewBoxX + previewBoxWidth, previewBoxY + previewBoxHeight, 0x80000000);
-        context.drawStrokedRectangle(previewBoxX, previewBoxY, previewBoxWidth, previewBoxHeight, 0xFF555555);
+        graphics.fill(previewBoxX, previewBoxY, previewBoxX + previewBoxWidth, previewBoxY + previewBoxHeight, 0x80000000);
+        graphics.outline(previewBoxX, previewBoxY, previewBoxWidth, previewBoxHeight, 0xFF555555);
 
-        context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("cscrosshairscale.config.preview"), this.width / 2, previewBoxY - 11, 0xAAAAAA);
+        graphics.centeredText(this.font, Component.translatable("cscrosshairscale.config.preview"), this.width / 2, previewBoxY - 11, 0xAAAAAA);
 
         int previewCenterX = this.width / 2;
         int previewCenterY = previewBoxY + previewBoxHeight / 2;
 
         float scale = ModConfig.get().scale;
-        Matrix3x2fStack matrices = context.getMatrices();
+        Matrix3x2fStack matrices = graphics.pose();
 
-        context.enableScissor(previewBoxX + 1, previewBoxY + 1, previewBoxX + previewBoxWidth - 1, previewBoxY + previewBoxHeight - 1);
+        graphics.enableScissor(previewBoxX + 1, previewBoxY + 1, previewBoxX + previewBoxWidth - 1, previewBoxY + previewBoxHeight - 1);
         matrices.pushMatrix();
         matrices.translate(previewCenterX, previewCenterY);
         matrices.scale(scale, scale);
         matrices.translate(-previewCenterX, -previewCenterY);
 
-        context.drawGuiTexture(RenderPipelines.CROSSHAIR, CROSSHAIR_TEXTURE, previewCenterX - 7, previewCenterY - 7, 15, 15);
+        graphics.blitSprite(RenderPipelines.CROSSHAIR, CROSSHAIR_TEXTURE, previewCenterX - 7, previewCenterY - 7, 15, 15);
         matrices.popMatrix();
-        context.disableScissor();
+        graphics.disableScissor();
     }
 
     @Override
-    public void close() {
+    public void onClose() {
         ModConfig.save();
-        if (this.client != null) {
-            this.client.setScreen(this.parent);
-        }
+        this.minecraft.gui.setScreen(this.parent);
     }
 }

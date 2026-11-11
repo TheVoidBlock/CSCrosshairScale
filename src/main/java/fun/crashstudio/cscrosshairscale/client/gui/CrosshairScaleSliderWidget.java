@@ -1,16 +1,16 @@
 package fun.crashstudio.cscrosshairscale.client.gui;
 
 import fun.crashstudio.cscrosshairscale.config.ModConfig;
-import net.minecraft.client.gui.Click;
-import net.minecraft.client.gui.widget.SliderWidget;
-import net.minecraft.text.Text;
-
 import java.util.Locale;
+import net.minecraft.client.gui.components.AbstractSliderButton;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.network.chat.Component;
+import org.jspecify.annotations.NonNull;
 
-public class CrosshairScaleSliderWidget extends SliderWidget {
+public class CrosshairScaleSliderWidget extends AbstractSliderButton {
 
     public CrosshairScaleSliderWidget(int x, int y, int width, int height) {
-        super(x, y, width, height, Text.empty(), toSliderValue(ModConfig.get().scale));
+        super(x, y, width, height, Component.empty(), toSliderValue(ModConfig.get().scale));
         updateMessage();
     }
 
@@ -28,17 +28,16 @@ public class CrosshairScaleSliderWidget extends SliderWidget {
     @Override
     protected void updateMessage() {
         float currentScale = toScale(this.value);
-        this.setMessage(Text.translatable("cscrosshairscale.config.scale", String.format(Locale.ROOT, "%.2fx", currentScale)));
+        this.setMessage(Component.translatable("cscrosshairscale.config.scale", String.format(Locale.ROOT, "%.2fx", currentScale)));
     }
 
     @Override
     protected void applyValue() {
-        float newScale = toScale(this.value);
-        ModConfig.get().scale = newScale;
+        ModConfig.get().scale = toScale(this.value);
     }
 
     @Override
-    public void onRelease(Click click) {
+    public void onRelease(@NonNull MouseButtonEvent click) {
         super.onRelease(click);
         ModConfig.save();
     }

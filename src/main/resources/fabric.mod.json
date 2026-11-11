@@ -16,9 +16,6 @@
   "icon": "assets/cscrosshairscale/icon.png",
   "environment": "client",
   "entrypoints": {
-    "client": [
-      "fun.crashstudio.cscrosshairscale.client.CscrosshairscaleClient"
-    ],
     "modmenu": [
       "fun.crashstudio.cscrosshairscale.client.ModMenuIntegration"
     ]
